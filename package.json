@@ -18,7 +18,8 @@
   },
   "homepage": "https://github.com/Thenlie/Flyable#readme",
   "dependencies": {
-    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.0.3",
+    "moment": "^2.29.4",
     "node-fetch": "^3.3.1"
   }
 }

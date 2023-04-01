@@ -1,13 +1,24 @@
+import * as dotenv from 'dotenv';
 import fetch from "node-fetch";
-import * as cheerio from 'cheerio';
+import moment from 'moment';
 
-const URL = 'https://mesowest.utah.edu/cgi-bin/droman/meso_table_mesowest.cgi?stn=FPS&unit=0&month1=&day1=0&year1=&hour1=00&time=LOCAL&past=0'
+dotenv.config();
+
+// Get current time (END_TIME) and 1 hour prior (START_TIME)
+const START_TIME = moment().subtract(1, 'hour').format('YYYYMMDDHHmm');
+const END_TIME = moment().format('YYYYMMDDHHmm');
+
+const URL = `https://api.synopticdata.com/v2/stations/timeseries?&token=${process.env.API_TOKEN}&stid=FPS,UUNET&status=active&output=json&start=${START_TIME}&end=${END_TIME}&units=temp|f,speed|mph`
 
 const response = await fetch(URL);
-const body = await response.text();
+const body = await response.json();
 
-// console.log(body);
+/**
+ * Returns an object containing weather dataset.
+ * Data will be listed in order from START_TIME to END_TIME.
+ * Important fields: 
+ * wind_speed_set_1, wind_cardinal_direction_set_1d, precip_accum_five_minute_set_1
+ */
+const observations = body.STATION[0].OBSERVATIONS;
 
-const $ = cheerio.load(body);
-
-console.log($('tr td').text());
+console.log(observations);
