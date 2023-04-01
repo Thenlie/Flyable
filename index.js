@@ -20,5 +20,30 @@ const body = await response.json();
  * wind_speed_set_1, wind_cardinal_direction_set_1d, precip_accum_five_minute_set_1
  */
 const observations = body.STATION[0].OBSERVATIONS;
-
 console.log(observations);
+
+/**
+ * Given some weather data, return whether or not those conditions are flyable.
+ * 
+ * @param {Number[]} precip | Precipitation accumulated in last 5 minutes in millimeters
+ * @param {Number[]} wind_speed | Wind speed at given time in miles per hour
+ * @param {String[]} wind_dir | Cardinal direction of wind at given time
+ * @returns {Boolean} | Whether or not the current conditions are flyable
+ */
+const isFlyable = (precip, wind_speed, wind_dir) => {
+    // Check if any rain has fallen
+    const isRaining = precip.find(i => i != 0) === undefined ? false : true;
+    if (isRaining) return false;
+
+    // Check wind direction, good values are S, SSW, SSE
+
+    // Check wind speeds, good values are 5-15
+
+    return true;
+}
+
+console.log(isFlyable(
+    observations.precip_accum_five_minute_set_1,
+    observations.wind_speed_set_1,
+    observations.wind_cardinal_direction_set_1d
+));
