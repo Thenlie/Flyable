@@ -1,8 +1,11 @@
-import * as dotenv from 'dotenv';
-import fetch from "node-fetch";
-import moment from 'moment';
+require('dotenv').config()
+const rpio = require('rpio');
+const moment = require('moment');
+const fetch = require('node-fetch');
 
-dotenv.config();
+// Set pins 5 & 7 to output for LEDs
+rpio.open(5, rpio.OUTPUT, rpio.LOW); // Red
+rpio.open(7, rpio.OUTPUT, rpio.LOW); // Green
 
 // Get current time (END_TIME) and 1 hour prior (START_TIME)
 const START_TIME = moment().subtract(1, 'hour').format('YYYYMMDDHHmm');
@@ -12,16 +15,30 @@ const GOOD_DIRECTIONS = ['S', 'SSW', 'SSE'];
 
 const URL = `https://api.synopticdata.com/v2/stations/timeseries?&token=${process.env.API_TOKEN}&stid=FPS,UUNET&status=active&output=json&start=${START_TIME}&end=${END_TIME}&units=temp|f,speed|mph`
 
-const response = await fetch(URL);
-const body = await response.json();
+const main = async () => {
+	const response = await fetch(URL);
+	const body = await response.json();
 
-/**
- * Returns an object containing weather dataset.
- * Data will be listed in order from START_TIME to END_TIME.
- * Important fields: 
- * wind_speed_set_1, wind_cardinal_direction_set_1d, precip_accum_five_minute_set_1
- */
-const observations = body.STATION[0].OBSERVATIONS;
+	/**
+	 * Returns an object containing weather dataset.
+	 * Data will be listed in order from START_TIME to END_TIME.
+	 * Important fields: 
+	 * wind_speed_set_1, wind_cardinal_direction_set_1d, precip_accum_five_minute_set_1
+	 */
+	const observations = body.STATION[0].OBSERVATIONS;
+
+	if (isFlyable(
+	    observations.precip_accum_five_minute_set_1,
+	    observations.wind_speed_set_1,
+	    observations.wind_cardinal_direction_set_1d
+	)) {
+        rpio.write(7, rpio.HIGH);
+        rpio.write(5, rpio.LOW);
+    } else {
+        rpio.write(7, rpio.LOW);
+        rpio.write(5, rpio.HIGH);
+    }
+}
 
 /**
  * Given some weather data, return whether or not those conditions are flyable.
@@ -56,8 +73,5 @@ const isFlyable = (precip, wind_speed, wind_dir) => {
     return true;
 }
 
-console.log(isFlyable(
-    observations.precip_accum_five_minute_set_1,
-    observations.wind_speed_set_1,
-    observations.wind_cardinal_direction_set_1d
-));
+main();
+
