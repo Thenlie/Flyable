@@ -13,6 +13,7 @@ const END_TIME = moment().format('YYYYMMDDHHmm');
 
 const GOOD_DIRECTIONS = ['S', 'SSW', 'SSE'];
 
+// https://developers.synopticdata.com/mesonet/explorer/
 const URL = `https://api.synopticdata.com/v2/stations/timeseries?&token=${process.env.API_TOKEN}&stid=FPS,UUNET&status=active&output=json&start=${START_TIME}&end=${END_TIME}&units=temp|f,speed|mph`
 
 const main = async () => {
@@ -51,25 +52,35 @@ const main = async () => {
 const isFlyable = (precip, wind_speed, wind_dir) => {
     // Check if any rain has fallen
     const isRaining = precip.find(i => i != 0) === undefined ? false : true;
-    if (isRaining) return false;
-    console.log('Rain check good ✅')
+    if (isRaining) {
+        console.log('Rain check failed ❌');
+        return false;
+    }
+    console.log('Rain check good ✅');
 
     // Check wind direction, good values are S, SSW, SSE
     let good_dirs = 0;
     for (let i = 0; i < wind_dir.length; i++) {
         if (GOOD_DIRECTIONS.includes(wind_dir[i])) good_dirs++;
     }
-    if (good_dirs / wind_dir.length < 0.6) return false;
-    console.log('Wind direction check good ✅')
+    if (good_dirs / wind_dir.length < 0.6) {
+        console.log('Wind direction check failed ❌');
+        return false;
+    }
+    console.log('Wind direction check good ✅');
 
     // Check wind speeds, good values are 5-15
     let good_speeds = 0;
     for (let i = 0; i < wind_speed.length; i++) {
         if (wind_speed[i] >= 5 && wind_speed[i] <= 15) good_speeds++;
     }
-    if (good_speeds / wind_speed.length < 0.8) return false;
-    console.log('Wind speed check good ✅')
+    if (good_speeds / wind_speed.length < 0.8) {
+        console.log('Wind speed check failed ❌');
+        return false;
+    }
+    console.log('Wind speed check good ✅');
 
+    // All check have passed!
     return true;
 }
 
